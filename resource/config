@@ -1,0 +1,10 @@
+{
+    "www.sui.com": [
+        "TRUE",
+        "FALSE"
+    ],
+    ".login.sui.com": [
+        "TRUE",
+        "FALSE"
+    ]
+}
