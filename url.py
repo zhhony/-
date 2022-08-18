@@ -1,21 +1,16 @@
-from urllib.parse import *
-from urllib.request import *
-from http.cookiejar import *
+from urllib import parse
+from urllib import request
+from http import cookiejar
 from pathlib import Path
-import time
+from bs4 import BeautifulSoup
+from mudules import download
 import ssl
 import gzip
-import os
-import re
-import pandas
-from bs4 import *
 
-pandas.set_option('display.unicode.east_asian_width', True)
-pandas.set_option('display.unicode.ambiguous_as_wide', True)
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
-url = 'https://www.sui.com/data/standard_data_import.do?m=exportAll&bids=0&sids=0&pids=0&token=31a88f6cd6b822e5c3f244eb6d1637af'
+url = 'https://www.sui.com/data/index.jsp'
 
 # request模块
 headers = {
@@ -27,7 +22,7 @@ headers = {
     'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Language': 'zh-CN,zh;q=0.9',
     'cache-control': 'no-cache',
-    'cookie': '__nick=zhhony%40126.com; _bookTabSwitchList=3a36ab85ce6f7073b89800b4195a7882|0|0&; __utmz=121176714.1658384441.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __spm_bid=c0c9bda5865bs9dfp7153cc21fm7689f; SESSION=e6c7faed-e4c7-4a1a-889c-9042eeda3b3b; SESSION_COOKIE=d9e21fbbd853e2d89543561dfe485965; Hm_lvt_3db4e52bb5797afe0faaa2fde5c96ea4=1658384437,1659581002,1660552239,1660612833; __utma=121176714.1216454833.1658384441.1660552239.1660612833.5; __utmc=121176714; __utmt=1; Hm_lpvt_3db4e52bb5797afe0faaa2fde5c96ea4=1660612836; __utmb=121176714.3.9.1660612836172',
+    # 'cookie': '__nick=zhhony%40126.com; _bookTabSwitchList=3a36ab85ce6f7073b89800b4195a7882|0|0&; __utmz=121176714.1658384441.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __spm_bid=c0c9bda5865bs9dfp7153cc21fm7689f; SESSION=e6c7faed-e4c7-4a1a-889c-9042eeda3b3b; SESSION_COOKIE=d9e21fbbd853e2d89543561dfe485965; Hm_lvt_3db4e52bb5797afe0faaa2fde5c96ea4=1658384437,1659581002,1660552239,1660612833; __utma=121176714.1216454833.1658384441.1660552239.1660612833.5; __utmc=121176714; __utmt=1; Hm_lpvt_3db4e52bb5797afe0faaa2fde5c96ea4=1660612836; __utmb=121176714.3.9.1660612836172',
     'pragma': 'no-cache',
     'Referer': 'https://www.sui.com/report_index.do',
     'sec-ch-ua': '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"',
@@ -44,22 +39,33 @@ headers = {
 
 def latestDocument(cookiePath: str) -> str:
     path = Path(cookiePath)
-    cookieFileList = [i for i in path.iterdir() if 'cookie' in str(i)]
+    cookieFileList = [i for i in path.iterdir() if 'Cookie' in str(i)]
     cookieFileList.sort()
     return str(cookieFileList[-1])
 
 
 lastCookie = latestDocument('./log/')
-cookie_jar = MozillaCookieJar(lastCookie)
+cookie_jar = cookiejar.MozillaCookieJar(lastCookie)
 cookie_jar.load(ignore_discard=True, ignore_expires=True)
 
-cookie_processor = HTTPCookieProcessor(cookie_jar)
-opener = build_opener(cookie_processor)
+cookie_processor = request.HTTPCookieProcessor(cookie_jar)
+opener = request.build_opener(cookie_processor)
 
-request = Request(url, headers=headers, method='GET')
-response = opener.open(request)
-html = response.read()
+req = request.Request(url, headers=headers, method='GET')
+response = opener.open(req)
+html = gzip.decompress(response.read()).decode('utf8')
 
 
-with open('./data/abc.xls', 'wb') as f:
-    f.write(html)
+soup = BeautifulSoup(html)
+downloadPath = soup.find_all(
+    'a', onclick="_gaq.push(['_trackEvent', 'webExport', 'clicked'])")[0]['href']
+downloadUrl = parse.urljoin(url, downloadPath)
+
+
+# requestA = request.Request(url=downloadUrl, headers=headers, method='GET')
+# file = opener.open(requestA)
+# dict(file.headers)
+
+
+download.Downunit(url=downloadUrl, path='./data/abc.xls',
+                  opener=opener, headers=headers).Download()
