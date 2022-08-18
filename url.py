@@ -6,13 +6,11 @@ from bs4 import BeautifulSoup
 from mudules import download
 import ssl
 import gzip
+import time
 
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
-url = 'https://www.sui.com/data/index.jsp'
-
-# request模块
 headers = {
     'authority': 'www.sui.com',
     'method': 'GET',
@@ -37,35 +35,40 @@ headers = {
 }
 
 
-def latestDocument(cookiePath: str) -> str:
+def getLatestCookie(cookiePath: str) -> str:
+    """获取最新的cookie"""
     path = Path(cookiePath)
     cookieFileList = [i for i in path.iterdir() if 'Cookie' in str(i)]
     cookieFileList.sort()
     return str(cookieFileList[-1])
 
 
-lastCookie = latestDocument('./log/')
-cookie_jar = cookiejar.MozillaCookieJar(lastCookie)
-cookie_jar.load(ignore_discard=True, ignore_expires=True)
-
-cookie_processor = request.HTTPCookieProcessor(cookie_jar)
-opener = request.build_opener(cookie_processor)
-
-req = request.Request(url, headers=headers, method='GET')
-response = opener.open(req)
-html = gzip.decompress(response.read()).decode('utf8')
+def getOpenerDir(cookieFile) -> request.OpenerDirector:
+    """基于cookie获取OpenerDirector对象"""
+    cookie_jar = cookiejar.MozillaCookieJar(cookieFile)
+    cookie_jar.load(ignore_discard=True, ignore_expires=True)
+    cookie_processor = request.HTTPCookieProcessor(cookie_jar)
+    return request.build_opener(cookie_processor)
 
 
-soup = BeautifulSoup(html)
-downloadPath = soup.find_all(
-    'a', onclick="_gaq.push(['_trackEvent', 'webExport', 'clicked'])")[0]['href']
-downloadUrl = parse.urljoin(url, downloadPath)
+def getDownLoadUrl(motherDownLoadUrl: str, opener: request.OpenerDirector) -> str:
+    """基于网址和OpenerDirector对象爬取下载链接"""
+    req = request.Request(motherDownLoadUrl, headers=headers, method='GET')
+    response = opener.open(req)
+    html = gzip.decompress(response.read()).decode('utf8')
+
+    soup = BeautifulSoup(html, features='html.parser')
+    downloadPath = soup.find_all(
+        'a', onclick="_gaq.push(['_trackEvent', 'webExport', 'clicked'])")[0]['href']
+    return parse.urljoin(motherDownLoadUrl, downloadPath)
 
 
-# requestA = request.Request(url=downloadUrl, headers=headers, method='GET')
-# file = opener.open(requestA)
-# dict(file.headers)
+def run():
+    url: str = 'https://www.sui.com/data/index.jsp'
 
+    lastCookie: str = getLatestCookie('./log/')
+    opener: request.OpenerDirector = getOpenerDir(lastCookie)
+    downloadUrl: str = getDownLoadUrl(url, opener)
 
-download.Downunit(url=downloadUrl, path='./data/abc.xls',
-                  opener=opener, headers=headers).Download()
+    download.Downunit(url=downloadUrl, path='./data/abc' + str(int(time.time())) + '.xls',
+                      opener=opener, headers=headers).Download()
