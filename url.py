@@ -35,9 +35,9 @@ headers = {
 }
 
 
-def getLatestCookie(cookiePath: str) -> str:
-    """获取最新的cookie"""
-    path = Path(cookiePath)
+def getLatestFiles(path: str) -> str:
+    """获取文件列表中升序排序最下面的文件所对应的路径"""
+    path = Path(path)
     cookieFileList = [i for i in path.iterdir() if 'Cookie' in str(i)]
     cookieFileList.sort()
     return str(cookieFileList[-1])
@@ -66,7 +66,7 @@ def getDownLoadUrl(motherDownLoadUrl: str, opener: request.OpenerDirector) -> st
 def run():
     url: str = 'https://www.sui.com/data/index.jsp'
 
-    lastCookie: str = getLatestCookie('./log/')
+    lastCookie: str = getLatestFiles('./log/')
     opener: request.OpenerDirector = getOpenerDir(lastCookie)
     downloadUrl: str = getDownLoadUrl(url, opener)
 
