@@ -1,4 +1,5 @@
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import *
 from urllib.request import *
 from typing import *
@@ -22,14 +23,32 @@ class Downunit():
 
         unitBox = self.CONTENT_LENGTH//self.threadnum + 1  # 每个线程所负责的下载大小
 
+        # for i in range(self.threadnum):
+        #     os_Start = i * unitBox  # 下载的起点
+
+        #     f = open(self.path, 'wb')
+        #     f.seek(os_Start, 0)
+        #     td = DownThread(self.url, self.headers,
+        #                     self.opener, f, os_Start, unitBox)
+        #     td.start()
+
+        pool = ThreadPoolExecutor(max_workers=self.threadnum)
+
+        threadList = []
         for i in range(self.threadnum):
             os_Start = i * unitBox  # 下载的起点
 
             f = open(self.path, 'wb')
             f.seek(os_Start, 0)
-            td = DownThread(self.url, self.headers,
-                            self.opener, f, os_Start, unitBox)
-            td.start()
+            downThread = DownThread(
+                self.url, self.headers, self.opener, f, os_Start, unitBox)
+
+            threadList.append(pool.submit(downThread.run))
+
+        for i in threadList:
+            i.result()
+
+        pool.shutdown()
 
 
 class DownThread(threading.Thread):
