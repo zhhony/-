@@ -5,18 +5,19 @@ from typing import *
 
 
 class Downunit():
-    def __init__(self, url: str, path: str, threadnum: int = 3) -> None:
+    def __init__(self, url: str, path: str, headers: dict, opener: OpenerDirector, threadnum: int = 3) -> None:
         self.url = url
         self.path = path
         self.threadnum = threadnum
         self.CONTENT_LENGTH = 0
-        self.headers = {}
+        self.headers = headers
+        self.opener = opener
 
     def Download(self):
-        request = Request(url=self.url, headers=self.headers)
-        self.file = urlopen(request)
-        self.CONTENT_LENGTH = int(dict(
-            self.file.headers).get('Content-Length', 0))
+        request = Request(url=self.url, headers=self.headers, method='GET')
+        self.file = self.opener.open(request)
+        self.CONTENT_LENGTH = int(
+            dict(self.file.headers).get('Content-Length', len(self.file.read())))
         self.file.close()
 
         unitBox = self.CONTENT_LENGTH//self.threadnum + 1  # 每个线程所负责的下载大小
@@ -26,22 +27,24 @@ class Downunit():
 
             f = open(self.path, 'wb')
             f.seek(os_Start, 0)
-            td = DownThread(self.url, self.headers, f, os_Start, unitBox)
+            td = DownThread(self.url, self.headers,
+                            self.opener, f, os_Start, unitBox)
             td.start()
 
 
 class DownThread(threading.Thread):
-    def __init__(self, url, headers, file, os_Start, unitBox) -> None:
+    def __init__(self, url, headers, opener, file, os_Start, unitBox) -> None:
         super().__init__()
         self.url = url
         self.headers = headers
+        self.opener = opener
         self.file = file
         self.os_Start = os_Start
         self.unitBox = unitBox
 
     def run(self):
         request = Request(url=self.url, headers=self.headers)
-        f = urlopen(request)
+        f = self.opener.open(request)
 
         # 移动光标到下载开始的位置
         for i in range(self.os_Start):
