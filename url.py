@@ -55,18 +55,26 @@ def getDownLoadUrl(motherDownLoadUrl: str, opener: request.OpenerDirector) -> st
     """基于网址和OpenerDirector对象爬取下载链接"""
     req = request.Request(motherDownLoadUrl, headers=headers, method='GET')
     response = opener.open(req)
-    html = gzip.decompress(response.read()).decode('utf8')
+    try:
+        html = gzip.decompress(response.read()).decode('utf8')
+    except:
+        print('解压出现错误：%s' % response.read())
+        raise ValueError
 
     soup = BeautifulSoup(html, features='html.parser')
-    downloadPath = soup.find_all(
-        'a', onclick="_gaq.push(['_trackEvent', 'webExport', 'clicked'])")[0]['href']
-    return parse.urljoin(motherDownLoadUrl, downloadPath)
+    try:
+        downloadPath = soup.find_all(
+            'a', onclick="_gaq.push(['_trackEvent', 'webExport', 'clicked'])")[0]['href']
+        return parse.urljoin(motherDownLoadUrl, downloadPath)
+    except:
+        print('寻找标签出现错误:%s' % soup.find_all('a'))
+        raise ValueError
 
 
 def run():
     url: str = 'https://www.sui.com/data/index.jsp'
 
-    lastCookie: str = getLatestFiles('./log/','Cookie')
+    lastCookie: str = getLatestFiles('./log/', 'Cookie')
     opener: request.OpenerDirector = getOpenerDir(lastCookie)
     downloadUrl: str = getDownLoadUrl(url, opener)
 
