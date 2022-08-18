@@ -6,5 +6,13 @@
     ".login.sui.com": [
         "TRUE",
         "FALSE"
+    ],
+    ".sui.com": [
+        "TRUE",
+        "FALSE"
+    ],
+    ".www.sui.com": [
+        "TRUE",
+        "FALSE"
     ]
 }

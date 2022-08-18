@@ -1,4 +1,3 @@
-import pymysql
 import argparse
 import pandas
 import time
@@ -6,13 +5,7 @@ import sys
 import traceback
 from pathlib import Path
 from typing import *
-
-
-# 定义数据库连接
-def UseConn(userHost: str, userPort: int, userUser: str, userPassword: str, userDatabase: str) -> pymysql.connect:
-    conn = pymysql.connect(host=userHost, port=userPort,
-                           user=userUser, password=userPassword, database=userDatabase)
-    return conn
+from mudules import *
 
 
 # 验证数据库连接是否成功

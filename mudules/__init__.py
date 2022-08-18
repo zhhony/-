@@ -1,4 +1,4 @@
-from .conn import *
-from .cookie import *
-from .decode import *
-from .download import *
+from . conn import *
+from .getcookie import *
+from . decode import *
+from . download import *
