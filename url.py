@@ -20,7 +20,6 @@ headers = {
     'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Language': 'zh-CN,zh;q=0.9',
     'cache-control': 'no-cache',
-    # 'cookie': '__nick=zhhony%40126.com; _bookTabSwitchList=3a36ab85ce6f7073b89800b4195a7882|0|0&; __utmz=121176714.1658384441.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __spm_bid=c0c9bda5865bs9dfp7153cc21fm7689f; SESSION=e6c7faed-e4c7-4a1a-889c-9042eeda3b3b; SESSION_COOKIE=d9e21fbbd853e2d89543561dfe485965; Hm_lvt_3db4e52bb5797afe0faaa2fde5c96ea4=1658384437,1659581002,1660552239,1660612833; __utma=121176714.1216454833.1658384441.1660552239.1660612833.5; __utmc=121176714; __utmt=1; Hm_lpvt_3db4e52bb5797afe0faaa2fde5c96ea4=1660612836; __utmb=121176714.3.9.1660612836172',
     'pragma': 'no-cache',
     'Referer': 'https://www.sui.com/report_index.do',
     'sec-ch-ua': '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"',
