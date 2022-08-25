@@ -50,10 +50,12 @@ def getOpenerDir(cookieFile) -> request.OpenerDirector:
     return [request.build_opener(cookie_processor), cookie_jar]
 
 
-def getDownLoadUrl(motherDownLoadUrl: str, opener: request.OpenerDirector) -> str:
+def getDownLoadUrl(motherDownLoadUrl: str, opener: request.OpenerDirector, cookie_jar: cookiejar.MozillaCookieJar) -> str:
     """基于网址和OpenerDirector对象爬取下载链接"""
     req = request.Request(motherDownLoadUrl, headers=headers, method='GET')
     response = opener.open(req)
+    cookie_jar.save('./log/Cookie'+str(int(time.time())) +
+                    '.log', ignore_discard=True, ignore_expires=True)
     try:
         html = gzip.decompress(response.read()).decode('utf8')
     except:
@@ -86,7 +88,8 @@ def run():
 
     lastCookie = getLatestFiles('./log/', 'Cookie')
     opener, cookie_jar = getOpenerDir(lastCookie)
-    downloadUrl = getDownLoadUrl(url, opener)
+    downloadUrl = getDownLoadUrl(url, opener, cookie_jar)
 
+    opener, cookie_jar = getOpenerDir(lastCookie)
     download.Downunit(url=downloadUrl, path='./data/abc' + str(int(time.time())) + '.xls',
                       opener=opener, headers=headers).Download()
