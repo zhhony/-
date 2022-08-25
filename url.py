@@ -47,7 +47,7 @@ def getOpenerDir(cookieFile) -> request.OpenerDirector:
     cookie_jar = cookiejar.MozillaCookieJar(cookieFile)
     cookie_jar.load(ignore_discard=True, ignore_expires=True)
     cookie_processor = request.HTTPCookieProcessor(cookie_jar)
-    return request.build_opener(cookie_processor)
+    return [request.build_opener(cookie_processor), cookie_jar]
 
 
 def getDownLoadUrl(motherDownLoadUrl: str, opener: request.OpenerDirector) -> str:
@@ -71,11 +71,22 @@ def getDownLoadUrl(motherDownLoadUrl: str, opener: request.OpenerDirector) -> st
 
 
 def run():
-    url: str = 'https://www.sui.com/data/index.jsp'
+    # 先访问首页拿到第一次cookie
+    url = 'https://www.sui.com/report_index.do'
 
-    lastCookie: str = getLatestFiles('./log/', 'Cookie')
-    opener: request.OpenerDirector = getOpenerDir(lastCookie)
-    downloadUrl: str = getDownLoadUrl(url, opener)
+    lastCookie = getLatestFiles('./log/', 'Cookie')
+    opener, cookie_jar = getOpenerDir(lastCookie)
+    req = request.Request(url, headers=headers, method='GET')
+    opener.open(req)
+    cookie_jar.save('./log/Cookie'+str(int(time.time())) +
+                    '.log', ignore_discard=True, ignore_expires=True)
+
+    # 再访问导入导出页面
+    url = 'https://www.sui.com/data/index.jsp'
+
+    lastCookie = getLatestFiles('./log/', 'Cookie')
+    opener, cookie_jar = getOpenerDir(lastCookie)
+    downloadUrl = getDownLoadUrl(url, opener)
 
     download.Downunit(url=downloadUrl, path='./data/abc' + str(int(time.time())) + '.xls',
                       opener=opener, headers=headers).Download()
