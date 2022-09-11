@@ -67,7 +67,7 @@ def TypeVerify(userPath: str) -> bool:
 def InsertDB(conn, userList: list):
     cur = conn.cursor()
     try:
-        sql = "INSERT INTO `zq_server`.`t_account_book` (`t_type`, `t_figer`, `t_udfiger`, `t_count1`, `t_count2`, `t_amount`, `t_date`, `t_person`, `t_project`, `t_shop`, `t_notice`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        sql = "INSERT INTO `zq_server`.`t_account_book` (`t_type`, `t_date`, `t_figer`, `t_udfiger`, `t_count1`, `t_count2`, `t_amount`, `t_person`, `t_project`, `t_shop`, `t_notice`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         cur.executemany(sql, userList)
         conn.commit()
         print('写入成功')
